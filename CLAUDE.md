@@ -12,7 +12,8 @@ A Laravel 13 prototype that evolves through defined phases:
 2. **Phase 2 (complete):** Custom Docker environment — Nginx/PHP-FPM Alpine, MariaDB, Redis, Mailpit, Swagger UI
 3. **Phase 3 (complete):** Core Composer packages — lorisleiva/laravel-actions, spatie/laravel-data, PHPStan level max
 4. **Phase 4 (complete):** HealthCheck domain — Actions/Data/Services/Enums pattern, 100% test coverage, Docker non-root user
-5. **Phase 5 (in progress):** Cleanup, refactoring, and hardening
+5. **Phase 5 (complete):** Cleanup, refactoring, and hardening — routes restructure, config/api.php, ApiVersion middleware, ApplicationHealthCheck, GitHub CI pipeline
+6. **Phase 6 (in progress):** Swagger/OpenAPI auth documentation — Sanctum Bearer security scheme, response schemas, enum/type accuracy
 
 Long-term vision: team starter template and migration target for a legacy PHP application.
 
@@ -121,6 +122,8 @@ docker compose logs -f nginx
 - **New specs/plans:** Save to `.omc/specs/` and `.omc/plans/` respectively
 - **Domain CLAUDE.md:** Every domain directory under `app/` gets a `CLAUDE.md` documenting: purpose, consumers, how to extend (e.g. add a service), auth model, and any non-obvious patterns
 - **No AI attribution:** Never include `🤖 Generated with Claude Code` or any similar attribution text in git commit messages, PR descriptions, or GitHub issues
+- **GitHub workflow:** For each piece of work — create a GitHub issue, create a feature branch (`feature/<slug>`), implement on the branch, commit referencing the issue number, push and open a PR targeting `develop`
+- **Keep this file current:** After completing a phase, adding a convention, or changing how the project is built or run — update CLAUDE.md to reflect the current state before ending the session
 
 ## Validation Gate
 
@@ -159,7 +162,7 @@ Server command: `docker compose exec -T app php artisan boost:mcp` (`cwd: "."` k
 
 ---
 
-_Last updated: 2026-04-21 (Phase 5 in progress — pre-Phase-6 refactor: routes restructure, config/api.php, ApiVersion middleware, ApplicationHealthCheck)_
+_Last updated: 2026-06-26 (Phase 5 complete — Phase 6 in progress: Swagger/OpenAPI auth docs, response schemas, enum/type accuracy)_
 
 ===
 
