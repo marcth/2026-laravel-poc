@@ -27,12 +27,12 @@ return [
     'sources' => [
         'local' => [
             'source' => 'local',
-            'base_path' => env('SPEC_PATH'),
+            'base_path' => env('SPEC_PATH', storage_path('api-docs')),
         ],
 
         'remote' => [
             'source' => 'remote',
-            'base_path' => env('SPEC_PATH'),
+            'base_path' => env('SPEC_PATH', storage_path('api-docs')),
             'params' => env('SPEC_URL_PARAMS', ''),
         ],
 
