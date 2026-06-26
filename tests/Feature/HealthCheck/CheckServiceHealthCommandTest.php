@@ -33,6 +33,37 @@ class CheckServiceHealthCommandTest extends TestCase
         $this->artisan('health:check redis')->assertExitCode(0);
     }
 
+    public function test_health_check_command_displays_meta_for_single_service(): void
+    {
+        $this->mock(HealthCheckerService::class, function ($mock): void {
+            $mock->shouldReceive('checkOne')->with('app')->once()->andReturn(
+                new HealthStatusData('app', ServiceStatus::Ok, 200, 1, [
+                    'api_version' => '1.0.0',
+                    'environment' => 'local',
+                    'php_ini' => ['opcache_enabled' => true],
+                ])
+            );
+        });
+
+        $this->artisan('health:check app')
+            ->expectsOutputToContain('api_version')
+            ->expectsOutputToContain('php_ini.opcache_enabled')
+            ->assertExitCode(0);
+    }
+
+    public function test_health_check_command_omits_meta_table_when_meta_is_empty(): void
+    {
+        $this->mock(HealthCheckerService::class, function ($mock): void {
+            $mock->shouldReceive('checkOne')->with('redis')->once()->andReturn(
+                new HealthStatusData('redis', ServiceStatus::Ok, 200, 2, [])
+            );
+        });
+
+        $this->artisan('health:check redis')
+            ->doesntExpectOutputToContain('Key')
+            ->assertExitCode(0);
+    }
+
     public function test_health_check_command_errors_on_unknown_service(): void
     {
         $this->artisan('health:check unknown-service')

@@ -6,6 +6,20 @@ A Laravel 13 prototype serving as a team starter template and migration target f
 
 ---
 
+## Contents
+
+- [Requirements](#requirements)
+- [Quick Start](#quick-start)
+- [Services](#services)
+- [Swagger UI](#swagger-ui)
+- [Common Commands](#common-commands)
+- [Testing](#testing)
+- [Architecture](#architecture)
+- [Stack](#stack)
+- [Agentic Development](#agentic-development)
+
+---
+
 ## Requirements
 
 - Docker Engine 24+ (no native PHP or Composer required)
@@ -23,6 +37,9 @@ docker compose up -d
 docker compose exec app composer install
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
+
+# Generate OpenAPI spec (storage/api-docs/ is gitignored)
+docker compose exec app php artisan l5-swagger:generate
 ```
 
 ---
@@ -33,11 +50,31 @@ docker compose exec app php artisan migrate
 |---------|-------------|-----------|
 | **Laravel** | PHP 8.4-FPM application served via Nginx | http://localhost:8000 |
 | **Mailpit** | Local SMTP capture — intercepts all outbound mail | http://localhost:8026 |
-| **Swagger UI** | OpenAPI documentation viewer — spec at `storage/api-docs/openapi.yaml` | http://localhost:8081 |
+| **Swagger UI** | OpenAPI documentation viewer | http://localhost:8081 |
 | **MariaDB 11** | Primary relational database (MySQL-compatible) | localhost:3307 |
 | **Redis 7** | Cache, sessions, and queue backend (phpredis) | localhost:6380 |
 
 > Host ports are offset from defaults to avoid conflicts with other local Docker projects.
+
+| Endpoint | Auth | Purpose |
+|----------|------|---------|
+| `GET /up` | Public | Liveness probe — `200` running, `503` during maintenance mode |
+| `GET /api/health` | Bearer token | Readiness aggregate — all registered services |
+| `GET /api/health/{service}` | Bearer token | Single service drill-down (`app`, `mariadb`, `redis`) |
+
+---
+
+## Swagger UI
+
+Interactive API documentation is available at [http://localhost:8081](http://localhost:8081). Opening `http://localhost:8000` redirects here.
+
+The OpenAPI spec (`storage/api-docs/`) is gitignored and must be generated locally:
+
+```bash
+docker compose exec app php artisan l5-swagger:generate
+```
+
+Endpoints require a Sanctum Bearer token — see the [HealthCheck README](app/HealthCheck/README.md#authentication) for instructions on generating one.
 
 ---
 
@@ -51,8 +88,7 @@ docker compose exec app php artisan <command>
 docker compose exec app composer <command>
 
 # Run tests
-docker compose exec app php artisan test --compact
-
+docker compose exec app php artisan test
 # Rebuild PHP image
 docker compose build app
 
@@ -69,16 +105,14 @@ The project targets **100% test coverage**. Coverage is measured via Xdebug, whi
 
 ```bash
 # Run all tests
-docker compose exec app php artisan test --compact
-
+docker compose exec app php artisan test
 # Run with coverage report (must stay at 100%)
-docker compose exec app php artisan test --coverage --compact
-
+docker compose exec app php artisan test --coverage
 # Run a specific test file
-docker compose exec app php artisan test --compact tests/Feature/HealthCheck/CheckServiceHealthTest.php
+docker compose exec app php artisan test tests/Feature/HealthCheck/CheckServiceHealthTest.php
 
 # Run a specific test by name
-docker compose exec app php artisan test --compact --filter=test_check_redis_returns_ok
+docker compose exec app php artisan test --filter=test_check_redis_returns_ok
 ```
 
 ### Static Analysis
@@ -99,11 +133,18 @@ All three gates (tests at 100%, PHPStan clean, Pint clean) must pass before any 
 
 ## Architecture
 
-This project follows a siloed domain architecture under `app/{Domain}/`. See [docs/architecture/README.md](docs/architecture/README.md) for design decisions, ADRs, and diagrams.
+This project uses a **custom siloed domain architecture** — not the default Laravel MVC structure. Each domain under `app/{Domain}/` is self-contained and built around two non-default packages:
 
-| Domain | Purpose | Docs |
-|--------|---------|------|
-| HealthCheck | Service liveness and readiness checks | [app/HealthCheck/CLAUDE.md](app/HealthCheck/CLAUDE.md) |
+- [`lorisleiva/laravel-actions`](https://laravelactions.com) — one class per use case, callable as an HTTP controller, Artisan command, queued job, or event listener via the `AsAction` trait
+- [`spatie/laravel-data`](https://spatie.be/docs/laravel-data) — type-safe DTOs used as both domain objects and HTTP response payloads
+
+See [docs/architecture/README.md](docs/architecture/README.md) for design decisions, ADRs, and the API versioning strategy.
+
+Each domain has its own `README.md` with authentication instructions, endpoint reference, CLI commands, and curl examples. `CLAUDE.md` in the same directory provides agentic context for Claude Code.
+
+| Domain | Purpose | README | CLAUDE.md |
+|--------|---------|--------|-----------|
+| HealthCheck | Service liveness and readiness checks | [app/HealthCheck/README.md](app/HealthCheck/README.md) | [app/HealthCheck/CLAUDE.md](app/HealthCheck/CLAUDE.md) |
 
 ---
 
@@ -125,7 +166,7 @@ This project follows a siloed domain architecture under `app/{Domain}/`. See [do
 
 This project uses [Laravel Boost](https://laravel.com/docs/ai) with an MCP server configured in `mcp.json`. Claude Code loads it automatically, providing tools for documentation search, database inspection, and browser log access.
 
-See `CLAUDE.md` for full agentic engineering instructions and `docs/agentic/BUILD.md` for the living build log.
+See `CLAUDE.md` for full agentic engineering instructions and [docs/agentic/BUILD.md](docs/agentic/BUILD.md) for the living build log.
 
 ---
 

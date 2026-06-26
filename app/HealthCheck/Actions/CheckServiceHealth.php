@@ -99,15 +99,51 @@ class CheckServiceHealth
 
         if ($service === null) {
             /** @var HealthStatusData[] $result */
-            $rows = array_map(
-                fn (HealthStatusData $d) => [$d->service, $d->status->value, $d->code, $d->executionTimeMs],
-                $result
+            $command->table(
+                ['Service', 'Status', 'Code', 'Time (ms)'],
+                array_map(
+                    fn (HealthStatusData $d) => [$d->service, $d->status->value, $d->code, $d->executionTimeMs],
+                    $result
+                )
             );
-        } else {
-            /** @var HealthStatusData $result */
-            $rows = [[$result->service, $result->status->value, $result->code, $result->executionTimeMs]];
+
+            return;
         }
 
-        $command->table(['Service', 'Status', 'Code', 'Time (ms)'], $rows);
+        /** @var HealthStatusData $result */
+        $command->table(
+            ['Service', 'Status', 'Code', 'Time (ms)'],
+            [[$result->service, $result->status->value, $result->code, $result->executionTimeMs]]
+        );
+
+        if (! empty($result->meta)) {
+            $command->table(['Key', 'Value'], $this->flattenMeta($result->meta));
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return list<array{string, string}>
+     */
+    private function flattenMeta(array $meta, string $prefix = ''): array
+    {
+        $rows = [];
+
+        foreach ($meta as $key => $value) {
+            $fullKey = $prefix !== '' ? "{$prefix}.{$key}" : $key;
+
+            if (is_array($value)) {
+                /** @var array<string, mixed> $value */
+                $rows = array_merge($rows, $this->flattenMeta($value, $fullKey));
+            } else {
+                $rows[] = [$fullKey, match (true) {
+                    is_bool($value) => $value ? 'true' : 'false',
+                    is_scalar($value) => (string) $value,
+                    default => '',
+                }];
+            }
+        }
+
+        return $rows;
     }
 }
