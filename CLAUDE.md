@@ -13,7 +13,8 @@ A Laravel 13 prototype that evolves through defined phases:
 3. **Phase 3 (complete):** Core Composer packages — lorisleiva/laravel-actions, spatie/laravel-data, PHPStan level max
 4. **Phase 4 (complete):** HealthCheck domain — Actions/Data/Services/Enums pattern, 100% test coverage, Docker non-root user
 5. **Phase 5 (complete):** Cleanup, refactoring, and hardening — routes restructure, config/api.php, ApiVersion middleware, ApplicationHealthCheck, GitHub CI pipeline
-6. **Phase 6 (in progress):** Swagger/OpenAPI auth documentation — Sanctum Bearer security scheme, response schemas, enum/type accuracy
+6. **Phase 6 (complete):** Swagger/OpenAPI auth documentation — Sanctum Bearer security scheme, response schemas, enum/type accuracy
+7. **Phase 7 (in progress):** Developer tooling — l5-swagger:audit command, Spectator contract testing, Claude commands, CLAUDE.md trim
 
 Long-term vision: team starter template and migration target for a legacy PHP application.
 
@@ -55,23 +56,6 @@ docker compose down
 
 # Build / rebuild PHP image
 docker compose build app
-
-# Artisan commands
-docker compose exec app php artisan <command>
-
-# Composer
-docker compose exec app composer <command>
-
-# First-run setup (after docker compose up -d)
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
-
-# Run tests
-docker compose exec app php artisan test
-
-# Tinker REPL
-docker compose exec app php artisan tinker
 
 # View logs
 docker compose logs -f app
@@ -122,31 +106,21 @@ docker compose logs -f nginx
 - **New specs/plans:** Save to `.omc/specs/` and `.omc/plans/` respectively
 - **Domain CLAUDE.md:** Every domain directory under `app/` gets a `CLAUDE.md` documenting: purpose, consumers, how to extend (e.g. add a service), auth model, and any non-obvious patterns
 - **No AI attribution:** Never include `🤖 Generated with Claude Code` or any similar attribution text in git commit messages, PR descriptions, or GitHub issues
-- **GitHub workflow:** For each piece of work — create a GitHub issue, create a feature branch (`feature/<slug>`), implement on the branch, commit referencing the issue number, push and open a PR targeting `develop`
+- **GitHub workflow:** Use `/issue` to create a GitHub issue and feature branch from a plan, and `/ship` to validate, commit, push, and open a PR targeting `develop`
 - **Keep this file current:** After completing a phase, adding a convention, or changing how the project is built or run — update CLAUDE.md to reflect the current state before ending the session
 
 ## Validation Gate
 
-Before marking any implementation task complete, all three gates must pass:
+Run `/validate` before marking any implementation task complete. All five gates must pass: tests (100% coverage), PHPStan (no errors), Pint (no changes), `l5-swagger:generate`, and `l5-swagger:audit`.
 
-```bash
-# 1. Tests — must stay at 100% coverage
-docker compose exec app php artisan test --coverage
+## Development Methodology
 
-# 2. PHPStan — must exit 0, empty baseline, no suppressions
-docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=-1
+Follow a vertical slice approach: implement one complete feature at a time, from route to test, before moving to the next.
 
-# 3. Pint — must produce no changes
-docker compose exec app ./vendor/bin/pint --test
-```
-
-If coverage drops below 100%, write the missing tests before proceeding. If PHPStan fails, fix the type error — do not add to the baseline.
-
-Once all three gates pass, regenerate the OpenAPI spec so Swagger UI reflects the current state:
-
-```bash
-docker compose exec app php artisan l5-swagger:generate
-```
+TDD loop for each slice:
+1. **RED** — Write a failing test that defines the expected behaviour.
+2. **GREEN** — Write the minimum code to make the test pass.
+3. **REFACTOR** — Clean up, run `/validate`, and move on only when all gates pass.
 
 ## Laravel Boost MCP
 
@@ -162,7 +136,7 @@ Server command: `docker compose exec -T app php artisan boost:mcp` (`cwd: "."` k
 
 ---
 
-_Last updated: 2026-06-26 (Phase 5 complete — Phase 6 in progress: Swagger/OpenAPI auth docs, response schemas, enum/type accuracy)_
+_Last updated: 2026-06-26 (Phase 6 complete — Phase 7 in progress: developer tooling, Claude commands, Spectator contract testing)_
 
 ===
 
