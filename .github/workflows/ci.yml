@@ -87,7 +87,7 @@ jobs:
             -e APP_KEY=${{ steps.appkey.outputs.value }} \
             -e APP_ENV=testing \
             laravel-prototype-ci:latest \
-            ./vendor/bin/phpstan analyse
+            ./vendor/bin/phpstan analyse --memory-limit=-1
 
       - name: Run Pint
         run: |

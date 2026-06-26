@@ -121,7 +121,7 @@ PHPStan runs at **level max** with an empty baseline — no errors are suppresse
 
 ```bash
 # PHPStan (must exit 0, no errors)
-docker compose exec app ./vendor/bin/phpstan analyse
+docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=-1
 
 # Pint code style (must produce no changes)
 docker compose exec app ./vendor/bin/pint --test

@@ -131,7 +131,7 @@ Before marking any implementation task complete, all three gates must pass:
 docker compose exec app php artisan test --coverage
 
 # 2. PHPStan — must exit 0, empty baseline, no suppressions
-docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=512M
+docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=-1
 
 # 3. Pint — must produce no changes
 docker compose exec app ./vendor/bin/pint --test
