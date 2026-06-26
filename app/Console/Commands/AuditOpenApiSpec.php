@@ -60,8 +60,19 @@ class AuditOpenApiSpec extends Command
             return self::FAILURE;
         }
 
-        $warningNote = $hasWarnings ? ' ('.count($incomplete).' warning(s))' : '';
         $this->newLine();
+        $this->table(
+            ['Check', 'Result'],
+            [
+                ['Routes audited', (string) count($routes)],
+                ['Spec paths', (string) count($specPaths)],
+                ['Undocumented routes', '0'],
+                ['Phantom spec paths', '0'],
+                ['Incomplete annotations', $hasWarnings ? count($incomplete).' warning(s)' : '0'],
+            ]
+        );
+
+        $warningNote = $hasWarnings ? ' ('.count($incomplete).' warning(s))' : '';
         $this->info("Audit passed{$warningNote}.");
 
         return self::SUCCESS;
