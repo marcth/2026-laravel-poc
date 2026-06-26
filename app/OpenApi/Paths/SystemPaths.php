@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
     operationId: 'liveness',
     summary: 'Application liveness check',
     description: 'Laravel built-in liveness endpoint. Returns 200 when the application is running, 503 when in maintenance mode. Not authenticated — intended for Docker health checks and load balancers.',
-    tags: ['System'],
+    tags: ['HealthCheck'],
     responses: [
         new OA\Response(response: 200, description: 'Application is up'),
         new OA\Response(response: 503, description: 'Application is in maintenance mode'),
