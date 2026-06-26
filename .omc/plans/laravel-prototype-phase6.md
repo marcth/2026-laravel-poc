@@ -224,11 +224,13 @@ Captured here for future cherry-picking — not yet scoped or scheduled.
 
 | # | Theme | Summary |
 |---|-------|---------|
-| 7 | **OpenAPI tooling** | Claude Code skill or script to audit annotation completeness and generate draft OA attributes for new endpoints — see `.omc/plans/laravel-prototype-phase7.md` |
+| 7 | **Developer tooling** | `l5-swagger:audit` Artisan command; `/issue`, `/test`, `/validate`, `/ship`, `/openapi-audit`, `/openapi-draft` Claude commands; contract testing via Spectator; CLAUDE.md trim — see `.omc/plans/laravel-prototype-phase7.md` |
 | — | **Authentication domain** | Sanctum token issuance and revocation endpoints (`POST /api/tokens`, `DELETE /api/tokens/{id}`); prerequisite for any user-facing API |
 | — | **User domain** | Register, login, profile — builds on Authentication domain |
 | — | **Observability** | Structured JSON request logging, correlation IDs, log-level config per environment |
 | — | **Queue infrastructure** | Redis queue driver wired, sample job + failed-jobs table, Horizon or Supervisor config |
+| — | **Database seeding** | Local developers need seeded test users and Sanctum bearer tokens ready to use. Needs: (1) `DatabaseSeeder` with user + token factories; (2) auto-reseed after `php artisan migrate` runs locally; (3) a `.claude/commands/sync.md` (`/sync`) that wraps `git pull develop + migrate + seed` so developers use `/sync` instead of `git pull` directly — avoids git hook approach since `.git/hooks/` is not tracked by git and requires per-developer setup. Decide between `/sync` command vs install script before scoping. Prerequisite: Authentication domain (token issuance must exist before tokens can be seeded). |
+| — | **True E2E tests?** | Should we add tests that hit the real Docker stack (Nginx → PHP-FPM) via HTTP rather than Laravel's in-process test client? Note: slow, requires infrastructure to be running, adds maintenance cost. Feature tests + contract tests (Spectator) already cover ~95% of what this would catch — consider whether the remaining gap justifies the overhead. |
 
 ---
 
