@@ -162,7 +162,7 @@ class CheckServiceHealthTest extends TestCase
         $this->mock(HealthCheckerService::class, function ($mock): void {
             $mock->shouldReceive('checkOne')->with('app')->andReturn(
                 new HealthStatusData('app', ServiceStatus::Ok, 200, 1, [
-                    'api_version' => '1',
+                    'api_version' => config('api.version'),
                     'php_version' => PHP_VERSION,
                     'framework_version' => app()->version(),
                     'environment' => 'testing',
