@@ -1,0 +1,4 @@
+# Ephemeral OMC runtime state — not team-shared
+sessions/
+state/
+project-memory.json

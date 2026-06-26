@@ -25,8 +25,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# Agentic orchestration state (local only)
-/.omc/
+# Agentic orchestration — plans/specs/skills tracked; ephemeral state ignored via .omc/.gitignore
 
 # Personal scratchpad
 /docs/todol.txt
