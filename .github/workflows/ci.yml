@@ -62,18 +62,6 @@ jobs:
         id: appkey
         run: echo "value=base64:$(openssl rand -base64 32)" >> $GITHUB_OUTPUT
 
-      - name: Generate OpenAPI spec
-        run: |
-          docker run --rm \
-            --network host \
-            --add-host mariadb:127.0.0.1 \
-            --add-host redis:127.0.0.1 \
-            -v ${{ github.workspace }}:/var/www/html \
-            -e APP_KEY=${{ steps.appkey.outputs.value }} \
-            -e APP_ENV=testing \
-            laravel-prototype-ci:latest \
-            php artisan l5-swagger:generate
-
       - name: Run tests
         run: |
           docker run --rm \
@@ -90,7 +78,7 @@ jobs:
             -e DB_PASSWORD=secret \
             -e REDIS_HOST=redis \
             laravel-prototype-ci:latest \
-            php artisan test --coverage --min=100
+            sh -c "php artisan l5-swagger:generate && php artisan test --coverage --min=100"
 
       - name: Run PHPStan
         run: |
