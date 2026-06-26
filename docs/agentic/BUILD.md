@@ -372,3 +372,7 @@ All gates passed: PHPStan level max (0 errors), Pint (clean), tests at 100% cove
 ### E — No Test Changes
 
 All changes are OpenAPI annotation-only. PHP logic, routing, middleware, and data layer are unchanged. Existing 100% test coverage is preserved without modification.
+
+### F — Documentation
+
+- **`docs/architecture/README.md`** — "Actions & Routing" section added: explains why Actions replace traditional controllers (one class = one use case = one entry point), documents how `asController()`, `asCommand()`, and `handle()` map to entry points, links to `https://laravelactions.com`, and notes the DDD route-file pattern with deferral rationale.

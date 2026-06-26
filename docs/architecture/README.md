@@ -63,6 +63,25 @@ Version is **not** encoded in the URL — `/api/health`, not `/api/v1/health`. H
 
 ---
 
+## Actions & Routing
+
+This project uses [`lorisleiva/laravel-actions`](https://laravelactions.com) instead of traditional Laravel controllers. Each Action is a single-class, single-responsibility unit that can serve multiple entry points without duplication.
+
+| Entry point | Method | Wired by |
+|-------------|--------|----------|
+| HTTP request | `asController()` | `Route::get()` / `Route::post()` etc. in `routes/api/{domain}.php` |
+| Artisan command | `asCommand()` | `Actions::registerCommandsForAction()` in `routes/console.php` |
+| Queue job | `asJob()` | `Action::dispatch()` |
+| Event listener | `asListener()` | `Action::listen()` |
+
+`handle()` is format-agnostic — it contains the core logic and is called by all entry points. This means a health check runs identically whether triggered via HTTP, CLI, or a scheduled job.
+
+**Why Actions instead of controllers:** one class = one use case = one entry point. No controller bloat, no service-layer duplication, no separate command class needed alongside a controller.
+
+**DDD route files:** each domain owns its route file (`routes/api/{domain}.php`). The current single-domain structure (`routes/api/health.php`) is intentionally flat. When a second domain is added, the pattern is already established — create `routes/api/{new-domain}.php` and `require` it from `routes/api.php`. Per-domain subdirectories (`routes/api/health/`) are deferred until a single domain has enough routes to warrant splitting.
+
+---
+
 ## Health Check Hierarchy
 
 Three endpoints, each serving a distinct infrastructure concern:
