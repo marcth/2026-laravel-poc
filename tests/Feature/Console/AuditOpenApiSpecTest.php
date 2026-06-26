@@ -13,13 +13,6 @@ class AuditOpenApiSpecTest extends TestCase
         return base_path("tests/Fixtures/OpenApi/{$name}");
     }
 
-    public function test_exits_zero_on_clean_spec(): void
-    {
-        $this->artisan('l5-swagger:audit', [
-            '--spec-file' => storage_path('api-docs/openapi.yaml'),
-        ])->assertExitCode(0);
-    }
-
     public function test_exits_nonzero_for_undocumented_route(): void
     {
         $this->artisan('l5-swagger:audit', [

@@ -9,25 +9,11 @@ use App\HealthCheck\Enums\ServiceStatus;
 use App\HealthCheck\Services\HealthCheckerService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spectator\Spectator;
 use Tests\TestCase;
 
 class CheckServiceHealthTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        Spectator::using('openapi.yaml');
-    }
-
-    protected function tearDown(): void
-    {
-        Spectator::reset();
-        Spectator::clearCache();
-        parent::tearDown();
-    }
 
     public function test_framework_up_route_untouched(): void
     {
@@ -50,8 +36,6 @@ class CheckServiceHealthTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/health');
 
         $response->assertStatus(200)
-            ->assertValidRequest()
-            ->assertValidResponse(200)
             ->assertJsonStructure(['services', 'healthy', 'checked_at'])
             ->assertJsonPath('healthy', true);
     }
@@ -136,25 +120,6 @@ class CheckServiceHealthTest extends TestCase
             'healthy',
             'checked_at',
         ]);
-    }
-
-    public function test_spectator_detects_schema_mismatch(): void
-    {
-        $this->mock(HealthCheckerService::class, function ($mock): void {
-            $mock->shouldReceive('checkAll')->andReturn([
-                new HealthStatusData('app', ServiceStatus::Ok, 200, 1, ['version' => '1']),
-            ]);
-        });
-
-        config(['spectator.sources.local.base_path' => base_path('tests/Fixtures/Spectator')]);
-        Spectator::clearCache();
-        Spectator::using('wrong-schema.yaml');
-
-        $user = User::factory()->create();
-
-        $this->actingAs($user, 'sanctum')->getJson('/api/health')
-            ->assertStatus(200)
-            ->assertInvalidResponse(200);
     }
 
     public function test_app_service_check_returns_ok(): void

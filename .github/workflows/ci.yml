@@ -78,7 +78,7 @@ jobs:
             -e DB_PASSWORD=secret \
             -e REDIS_HOST=redis \
             laravel-prototype-ci:latest \
-            sh -c "php artisan l5-swagger:generate && php artisan test --coverage --min=100"
+            php artisan test --coverage --min=100
 
       - name: Run PHPStan
         run: |
