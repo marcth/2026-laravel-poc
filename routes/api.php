@@ -12,3 +12,4 @@ declare(strict_types=1);
  */
 
 require base_path('routes/api/health.php');
+require base_path('routes/api/hello.php');
