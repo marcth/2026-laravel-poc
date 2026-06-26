@@ -284,7 +284,7 @@ The HealthCheck domain was restructured around a `HealthCheckInterface` contract
 
 ### F — CI Pipeline
 
-- **`.github/workflows/ci.yml`** — builds the `ci` Docker target with GHA layer cache (`type=gha`); spins up `mariadb:11` and `redis:7-alpine` as services; runs `php artisan test --compact`, `phpstan analyse`, and `pint --test` inside the container.
+- **`.github/workflows/ci.yml`** — builds the `ci` Docker target with GHA layer cache (`type=gha`); spins up `mariadb:11` and `redis:7-alpine` as services; runs `php artisan test`, `phpstan analyse`, and `pint --test` inside the container.
 
 ### Test Coverage
 

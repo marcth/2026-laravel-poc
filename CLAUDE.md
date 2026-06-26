@@ -127,7 +127,7 @@ Before marking any implementation task complete, all three gates must pass:
 
 ```bash
 # 1. Tests — must stay at 100% coverage
-docker compose exec app php artisan test --coverage --compact
+docker compose exec app php artisan test --coverage
 
 # 2. PHPStan — must exit 0, empty baseline, no suppressions
 docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=512M
@@ -137,6 +137,12 @@ docker compose exec app ./vendor/bin/pint --test
 ```
 
 If coverage drops below 100%, write the missing tests before proceeding. If PHPStan fails, fix the type error — do not add to the baseline.
+
+Once all three gates pass, regenerate the OpenAPI spec so Swagger UI reflects the current state:
+
+```bash
+docker compose exec app php artisan l5-swagger:generate
+```
 
 ## Laravel Boost MCP
 
@@ -316,8 +322,8 @@ This project has domain-specific skills available. You MUST activate the relevan
 ## Running Tests
 
 - Run the minimal number of tests, using an appropriate filter, before finalizing.
-- To run all tests: `php artisan test --compact`.
-- To run all tests in a file: `php artisan test --compact tests/Feature/ExampleTest.php`.
-- To filter on a particular test name: `php artisan test --compact --filter=testName` (recommended after making a change to a related file).
+- To run all tests: `php artisan test`.
+- To run all tests in a file: `php artisan test tests/Feature/ExampleTest.php`.
+- To filter on a particular test name: `php artisan test --filter=testName` (recommended after making a change to a related file).
 
 </laravel-boost-guidelines>

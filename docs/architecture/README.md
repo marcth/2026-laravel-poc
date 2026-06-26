@@ -17,9 +17,9 @@ app/{Domain}/
 
 ## Domains
 
-| Domain | Purpose | Entry Point |
-|--------|---------|-------------|
-| [HealthCheck](../../app/HealthCheck/CLAUDE.md) | Service liveness and readiness checks | `GET /api/health` |
+| Domain | Purpose | Entry Point | Docs |
+|--------|---------|-------------|------|
+| HealthCheck | Service liveness and readiness checks | `GET /api/health` | [README](../../app/HealthCheck/README.md) · [CLAUDE.md](../../app/HealthCheck/CLAUDE.md) |
 
 ## Key Design Decisions
 
