@@ -1,0 +1,16 @@
+name: Enforce develop → main only
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if PR source is develop
+        if: github.head_ref != 'develop'
+        run: |
+          echo "❌ Only the develop branch can be merged into main"
+          exit 1

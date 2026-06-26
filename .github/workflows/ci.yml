@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [develop, main]
   pull_request:
-    branches: [main]
+    branches: [develop, main]
 
 jobs:
   ci:
@@ -78,7 +78,7 @@ jobs:
             -e DB_PASSWORD=secret \
             -e REDIS_HOST=redis \
             laravel-prototype-ci:latest \
-            php artisan test --compact
+            php artisan test --coverage --min=100
 
       - name: Run PHPStan
         run: |
@@ -87,7 +87,7 @@ jobs:
             -e APP_KEY=${{ steps.appkey.outputs.value }} \
             -e APP_ENV=testing \
             laravel-prototype-ci:latest \
-            ./vendor/bin/phpstan analyse
+            ./vendor/bin/phpstan analyse --memory-limit=-1
 
       - name: Run Pint
         run: |
