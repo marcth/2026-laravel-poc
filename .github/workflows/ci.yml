@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: laravel
+          MARIADB_USER: laravel
+          MARIADB_PASSWORD: secret
+          MARIADB_ROOT_PASSWORD: root
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 3306:3306
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build CI image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: ci
+          load: true
+          tags: laravel-prototype-ci:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install Composer dependencies
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/var/www/html \
+            laravel-prototype-ci:latest \
+            composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Generate APP_KEY
+        id: appkey
+        run: echo "value=base64:$(openssl rand -base64 32)" >> $GITHUB_OUTPUT
+
+      - name: Run tests
+        run: |
+          docker run --rm \
+            --network host \
+            --add-host mariadb:127.0.0.1 \
+            --add-host redis:127.0.0.1 \
+            -v ${{ github.workspace }}:/var/www/html \
+            -e APP_KEY=${{ steps.appkey.outputs.value }} \
+            -e APP_ENV=testing \
+            -e DB_CONNECTION=mysql \
+            -e DB_HOST=mariadb \
+            -e DB_DATABASE=laravel \
+            -e DB_USERNAME=laravel \
+            -e DB_PASSWORD=secret \
+            -e REDIS_HOST=redis \
+            laravel-prototype-ci:latest \
+            php artisan test --compact
+
+      - name: Run PHPStan
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/var/www/html \
+            -e APP_KEY=${{ steps.appkey.outputs.value }} \
+            -e APP_ENV=testing \
+            laravel-prototype-ci:latest \
+            ./vendor/bin/phpstan analyse
+
+      - name: Run Pint
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/var/www/html \
+            laravel-prototype-ci:latest \
+            ./vendor/bin/pint --test
