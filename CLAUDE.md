@@ -120,6 +120,7 @@ docker compose logs -f nginx
 - **All PHP commands:** Run via `docker compose exec app` (no native PHP on host)
 - **New specs/plans:** Save to `.omc/specs/` and `.omc/plans/` respectively
 - **Domain CLAUDE.md:** Every domain directory under `app/` gets a `CLAUDE.md` documenting: purpose, consumers, how to extend (e.g. add a service), auth model, and any non-obvious patterns
+- **No AI attribution:** Never include `🤖 Generated with Claude Code` or any similar attribution text in git commit messages, PR descriptions, or GitHub issues
 
 ## Validation Gate
 
