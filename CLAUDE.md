@@ -123,6 +123,8 @@ docker compose logs -f nginx
 - **Domain CLAUDE.md:** Every domain directory under `app/` gets a `CLAUDE.md` documenting: purpose, consumers, how to extend (e.g. add a service), auth model, and any non-obvious patterns
 - **No AI attribution:** Never include `🤖 Generated with Claude Code` or any similar attribution text in git commit messages, PR descriptions, or GitHub issues
 - **GitHub workflow:** Use `/issue` to create a GitHub issue and feature branch from a plan, and `/ship` to validate, commit, push, and open a PR targeting `develop`
+- **OpenAPI annotations:** Operation docs (`OA\Get`, `OA\Post`, etc.) belong on the Action class. Schema docs (`OA\Schema`, `OA\Property`) belong on the DTO class. Do not create `app/OpenApi/Schemas/` files for domain schemas. `storage/api-docs/openapi.yaml` is a generated artifact — never hand-edit it.
+- **VERSION file:** `VERSION` (project root) is the single source of truth for `APP_VERSION` and `API_VERSION`. It is committed to the repo. Do not add version numbers to `.env`. Config files read `API_VERSION` as normal — the VERSION file is the only change.
 - **Keep this file current:** After completing a phase, adding a convention, or changing how the project is built or run — update CLAUDE.md to reflect the current state before ending the session
 
 ## Validation Gate
@@ -152,7 +154,7 @@ Server command: `docker compose exec -T app php artisan boost:mcp` (`cwd: "."` k
 
 ---
 
-_Last updated: 2026-06-30 (Phase 7 complete — Design Philosophy added; Phase 8 planned)_
+_Last updated: 2026-06-30 (Phase 8 in progress — OpenAPI annotation convention, VERSION file, schema ownership moved to DTOs)_
 
 ===
 

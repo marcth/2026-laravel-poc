@@ -9,7 +9,7 @@ use OpenApi\Attributes as OA;
 #[OA\Info(
     title: 'Laravel Prototype API',
     version: L5_SWAGGER_CONST_VERSION,
-    description: 'Laravel 13 prototype — team starter template and legacy migration target.',
+    description: 'Laravel 13 prototype serving as a team starter template and legacy migration target. All endpoints require a Sanctum Bearer token (Authorization: Bearer <token>). API version is negotiated via the X-API-Version request header (current: v1).',
 )]
 #[OA\Server(url: L5_SWAGGER_CONST_HOST, description: 'Local development')]
 #[OA\SecurityScheme(
@@ -17,6 +17,10 @@ use OpenApi\Attributes as OA;
     type: 'http',
     scheme: 'bearer',
     bearerFormat: 'Token',
-    description: 'Laravel Sanctum personal access token.',
+    description: 'Laravel Sanctum personal access token. Obtain a token by authenticating via your application\'s token-issue endpoint, then pass it as Authorization: Bearer <token> on every request.',
+)]
+#[OA\Tag(
+    name: 'HealthCheck',
+    description: 'Service readiness checks for deployment pipelines, monitoring systems, and local debugging. Consumers: CI/CD post-deploy probes (GET /api/health), developer drill-down (GET /api/health/{service}), and CLI (php artisan health:check).',
 )]
 class ApiController extends Controller {}
