@@ -87,8 +87,8 @@ docker compose exec app php artisan <command>
 # Composer
 docker compose exec app composer <command>
 
-# Run tests
-docker compose exec app php artisan test
+# Run tests (100% coverage required)
+docker compose exec app php artisan test --coverage --min=100
 # Rebuild PHP image
 docker compose build app
 
@@ -101,13 +101,12 @@ docker compose logs -f nginx
 
 ## Testing
 
-The project targets **100% test coverage**. Coverage is measured via Xdebug, which is pre-installed in the dev image.
+The project targets **100% test coverage**. Use `/validate` (Claude command) to run all five gates in sequence before any commit.
 
 ```bash
-# Run all tests
-docker compose exec app php artisan test
-# Run with coverage report (must stay at 100%)
-docker compose exec app php artisan test --coverage
+# Full test suite — 100% coverage required, fails below threshold
+docker compose exec app php artisan test --coverage --min=100
+
 # Run a specific test file
 docker compose exec app php artisan test tests/Feature/HealthCheck/CheckServiceHealthTest.php
 
@@ -115,19 +114,26 @@ docker compose exec app php artisan test tests/Feature/HealthCheck/CheckServiceH
 docker compose exec app php artisan test --filter=test_check_redis_returns_ok
 ```
 
-### Static Analysis
-
-PHPStan runs at **level max** with an empty baseline — no errors are suppressed.
+### Validation Gate (all five must pass)
 
 ```bash
-# PHPStan (must exit 0, no errors)
+# 1. Tests — 100% coverage
+docker compose exec app php artisan test --coverage --min=100
+
+# 2. Static analysis — level max, no suppressed errors
 docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=-1
 
-# Pint code style (must produce no changes)
+# 3. Code style — must produce no changes
 docker compose exec app ./vendor/bin/pint --test
+
+# 4. Regenerate OpenAPI spec
+docker compose exec app php artisan l5-swagger:generate
+
+# 5. Audit OpenAPI spec — undocumented routes, phantom paths, incomplete annotations
+docker compose exec app php artisan l5-swagger:audit
 ```
 
-All three gates (tests at 100%, PHPStan clean, Pint clean) must pass before any change is considered complete.
+Run `/validate` in Claude Code to execute all five gates automatically.
 
 ---
 

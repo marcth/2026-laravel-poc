@@ -16,6 +16,9 @@
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <directory>app/OpenApi/Paths</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

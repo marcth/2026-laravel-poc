@@ -26,8 +26,8 @@ class CheckServiceHealthTest extends TestCase
     {
         $this->mock(HealthCheckerService::class, function ($mock): void {
             $mock->shouldReceive('checkAll')->andReturn([
-                new HealthStatusData('mariadb', ServiceStatus::Ok, 200, 1, []),
-                new HealthStatusData('redis', ServiceStatus::Ok, 200, 2, []),
+                new HealthStatusData('mariadb', ServiceStatus::Ok, 200, 1, ['latency_ms' => 1]),
+                new HealthStatusData('redis', ServiceStatus::Ok, 200, 2, ['latency_ms' => 2]),
             ]);
         });
 
@@ -44,7 +44,7 @@ class CheckServiceHealthTest extends TestCase
     {
         $this->mock(HealthCheckerService::class, function ($mock): void {
             $mock->shouldReceive('checkAll')->andReturn([
-                new HealthStatusData('laravel', ServiceStatus::Ok, 200, 1, []),
+                new HealthStatusData('app', ServiceStatus::Ok, 200, 1, []),
                 new HealthStatusData('mariadb', ServiceStatus::Down, 503, 2001, []),
                 new HealthStatusData('redis', ServiceStatus::Ok, 200, 2, []),
             ]);
@@ -127,7 +127,7 @@ class CheckServiceHealthTest extends TestCase
         $this->mock(HealthCheckerService::class, function ($mock): void {
             $mock->shouldReceive('checkOne')->with('app')->andReturn(
                 new HealthStatusData('app', ServiceStatus::Ok, 200, 1, [
-                    'api_version' => '1',
+                    'api_version' => config('api.version'),
                     'php_version' => PHP_VERSION,
                     'framework_version' => app()->version(),
                     'environment' => 'testing',

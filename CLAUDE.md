@@ -4,6 +4,21 @@ Agentic project instructions for Claude Code. Read this file before making any c
 
 ---
 
+## Design Philosophy
+
+**Actions are named business operations. DTOs are their data contracts.**
+
+Both are written to be readable by Product Owners and AI agents, not just developers. `app/{Domain}/Actions/` is a product catalogue — each class name maps directly to a business requirement. DTOs make the data contract explicit and reviewable without reading implementation code.
+
+This serves two goals:
+
+1. **Minimal institutional memory loss** — when code speaks in business terms, knowledge doesn't live only in a developer's head. A new developer, a PO, or an AI agent can read the action inventory and understand what the system does.
+2. **Agentic workflow alignment** — AI agents navigate the domain structure to understand the business surface, generate consistent implementations, and propose changes that a PO can review by name.
+
+**Grow as you go.** Start with an Action and a DTO. Add a Service class only when an Action becomes too complex. Add repositories, events, and query objects only when the need is real — not in anticipation of it.
+
+---
+
 ## Project Purpose
 
 A Laravel 13 prototype that evolves through defined phases:
@@ -13,7 +28,9 @@ A Laravel 13 prototype that evolves through defined phases:
 3. **Phase 3 (complete):** Core Composer packages — lorisleiva/laravel-actions, spatie/laravel-data, PHPStan level max
 4. **Phase 4 (complete):** HealthCheck domain — Actions/Data/Services/Enums pattern, 100% test coverage, Docker non-root user
 5. **Phase 5 (complete):** Cleanup, refactoring, and hardening — routes restructure, config/api.php, ApiVersion middleware, ApplicationHealthCheck, GitHub CI pipeline
-6. **Phase 6 (in progress):** Swagger/OpenAPI auth documentation — Sanctum Bearer security scheme, response schemas, enum/type accuracy
+6. **Phase 6 (complete):** Swagger/OpenAPI auth documentation — Sanctum Bearer security scheme, response schemas, enum/type accuracy
+7. **Phase 7 (complete):** Developer tooling — l5-swagger:audit command, OpenAPI pre-commit guard, Claude commands (/issue, /ship, /validate), CLAUDE.md trim
+8. **Phase 8 (planned):** OpenAPI human documentation — narrative descriptions, inline examples, schema ownership moved to DTOs, VERSION file
 
 Long-term vision: team starter template and migration target for a legacy PHP application.
 
@@ -55,23 +72,6 @@ docker compose down
 
 # Build / rebuild PHP image
 docker compose build app
-
-# Artisan commands
-docker compose exec app php artisan <command>
-
-# Composer
-docker compose exec app composer <command>
-
-# First-run setup (after docker compose up -d)
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
-
-# Run tests
-docker compose exec app php artisan test
-
-# Tinker REPL
-docker compose exec app php artisan tinker
 
 # View logs
 docker compose logs -f app
@@ -122,31 +122,21 @@ docker compose logs -f nginx
 - **New specs/plans:** Save to `.omc/specs/` and `.omc/plans/` respectively
 - **Domain CLAUDE.md:** Every domain directory under `app/` gets a `CLAUDE.md` documenting: purpose, consumers, how to extend (e.g. add a service), auth model, and any non-obvious patterns
 - **No AI attribution:** Never include `🤖 Generated with Claude Code` or any similar attribution text in git commit messages, PR descriptions, or GitHub issues
-- **GitHub workflow:** For each piece of work — create a GitHub issue, create a feature branch (`feature/<slug>`), implement on the branch, commit referencing the issue number, push and open a PR targeting `develop`
+- **GitHub workflow:** Use `/issue` to create a GitHub issue and feature branch from a plan, and `/ship` to validate, commit, push, and open a PR targeting `develop`
 - **Keep this file current:** After completing a phase, adding a convention, or changing how the project is built or run — update CLAUDE.md to reflect the current state before ending the session
 
 ## Validation Gate
 
-Before marking any implementation task complete, all three gates must pass:
+Run `/validate` before marking any implementation task complete. All five gates must pass: tests (100% coverage), PHPStan (no errors), Pint (no changes), `l5-swagger:generate`, and `l5-swagger:audit`.
 
-```bash
-# 1. Tests — must stay at 100% coverage
-docker compose exec app php artisan test --coverage
+## Development Methodology
 
-# 2. PHPStan — must exit 0, empty baseline, no suppressions
-docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=-1
+Follow a vertical slice approach: implement one complete feature at a time, from route to test, before moving to the next.
 
-# 3. Pint — must produce no changes
-docker compose exec app ./vendor/bin/pint --test
-```
-
-If coverage drops below 100%, write the missing tests before proceeding. If PHPStan fails, fix the type error — do not add to the baseline.
-
-Once all three gates pass, regenerate the OpenAPI spec so Swagger UI reflects the current state:
-
-```bash
-docker compose exec app php artisan l5-swagger:generate
-```
+TDD loop for each slice:
+1. **RED** — Write a failing test that defines the expected behaviour.
+2. **GREEN** — Write the minimum code to make the test pass.
+3. **REFACTOR** — Clean up, run `/validate`, and move on only when all gates pass.
 
 ## Laravel Boost MCP
 
@@ -162,7 +152,7 @@ Server command: `docker compose exec -T app php artisan boost:mcp` (`cwd: "."` k
 
 ---
 
-_Last updated: 2026-06-26 (Phase 5 complete — Phase 6 in progress: Swagger/OpenAPI auth docs, response schemas, enum/type accuracy)_
+_Last updated: 2026-06-30 (Phase 7 complete — Design Philosophy added; Phase 8 planned)_
 
 ===
 
