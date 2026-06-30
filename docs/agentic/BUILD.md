@@ -423,8 +423,4 @@ Six project-scoped commands added to `.claude/commands/`:
 
 ### Validation
 
-All gates passed locally: PHPStan level max (0 errors), Pint (clean), tests at 100% coverage, `l5-swagger:audit` exits 0.
-
-### Validation
-
 All gates pass locally: PHPStan level max (0 errors), Pint (clean), 50 tests at 100% coverage. CI unblocked — no spec generation in the test step, no Spectator dependency.

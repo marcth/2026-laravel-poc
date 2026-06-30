@@ -14,8 +14,8 @@ Create a GitHub issue from a plan file and a matching feature branch.
 7. Derive a slug from the plan title (lowercase, hyphens).
 8. Create and checkout the branch:
    ```bash
-   git checkout -b <type>/<slug>
-   git push -u origin <type>/<slug>
+   git checkout -b <type>/<number>-<slug>
+   git push -u origin <type>/<number>-<slug>
    ```
 
 Report the issue URL and the branch name when done.

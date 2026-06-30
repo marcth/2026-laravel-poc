@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\HealthCheck;
 
 use App\HealthCheck\Data\HealthStatusData;
@@ -68,6 +70,6 @@ class CheckServiceHealthCommandTest extends TestCase
     {
         $this->artisan('health:check unknown-service')
             ->expectsOutputToContain('Unknown service')
-            ->assertExitCode(0);
+            ->assertExitCode(1);
     }
 }
