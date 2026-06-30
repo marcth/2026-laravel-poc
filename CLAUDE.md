@@ -4,6 +4,21 @@ Agentic project instructions for Claude Code. Read this file before making any c
 
 ---
 
+## Design Philosophy
+
+**Actions are named business operations. DTOs are their data contracts.**
+
+Both are written to be readable by Product Owners and AI agents, not just developers. `app/{Domain}/Actions/` is a product catalogue — each class name maps directly to a business requirement. DTOs make the data contract explicit and reviewable without reading implementation code.
+
+This serves two goals:
+
+1. **Minimal institutional memory loss** — when code speaks in business terms, knowledge doesn't live only in a developer's head. A new developer, a PO, or an AI agent can read the action inventory and understand what the system does.
+2. **Agentic workflow alignment** — AI agents navigate the domain structure to understand the business surface, generate consistent implementations, and propose changes that a PO can review by name.
+
+**Grow as you go.** Start with an Action and a DTO. Add a Service class only when an Action becomes too complex. Add repositories, events, and query objects only when the need is real — not in anticipation of it.
+
+---
+
 ## Project Purpose
 
 A Laravel 13 prototype that evolves through defined phases:
@@ -14,7 +29,8 @@ A Laravel 13 prototype that evolves through defined phases:
 4. **Phase 4 (complete):** HealthCheck domain — Actions/Data/Services/Enums pattern, 100% test coverage, Docker non-root user
 5. **Phase 5 (complete):** Cleanup, refactoring, and hardening — routes restructure, config/api.php, ApiVersion middleware, ApplicationHealthCheck, GitHub CI pipeline
 6. **Phase 6 (complete):** Swagger/OpenAPI auth documentation — Sanctum Bearer security scheme, response schemas, enum/type accuracy
-7. **Phase 7 (in progress):** Developer tooling — l5-swagger:audit command, Spectator contract testing, Claude commands, CLAUDE.md trim
+7. **Phase 7 (complete):** Developer tooling — l5-swagger:audit command, OpenAPI pre-commit guard, Claude commands (/issue, /ship, /validate), CLAUDE.md trim
+8. **Phase 8 (planned):** OpenAPI human documentation — narrative descriptions, inline examples, schema ownership moved to DTOs, VERSION file
 
 Long-term vision: team starter template and migration target for a legacy PHP application.
 
@@ -136,7 +152,7 @@ Server command: `docker compose exec -T app php artisan boost:mcp` (`cwd: "."` k
 
 ---
 
-_Last updated: 2026-06-26 (Phase 6 complete — Phase 7 in progress: developer tooling, Claude commands, Spectator contract testing)_
+_Last updated: 2026-06-30 (Phase 7 complete — Design Philosophy added; Phase 8 planned)_
 
 ===
 

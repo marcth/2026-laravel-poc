@@ -1,21 +1,82 @@
-Validate, commit, push, and open a pull request for the current branch.
+Validate, then present a review summary to the developer before committing, pushing, and opening a pull request.
 
-1. **Validate first** — run `/validate`. If any gate fails, stop and report. Do not proceed until all gates pass.
+**Never commit without explicit developer confirmation.**
 
-2. **Stage changes** — show the user a summary of changed files (`git status`). Ask the user to confirm before committing.
+---
 
-3. **Commit** — find the open GitHub issue linked to this branch (look for an issue number in the branch name or ask the user). Commit with a message referencing the issue:
+## Step 1 — Validate
+
+Run `/validate`. If any gate fails, stop and report. Do not continue until all five gates pass.
+
+---
+
+## Step 2 — Present review summary
+
+After all gates pass, display the following together in a single response for the developer to review:
+
+### Test results
+
+Extract and show the key numbers from the test run output:
+- Number of tests passed / total
+- Number of assertions
+- Coverage percentage
+
+Example format:
+```
+Tests:  52 passed (312 assertions)
+Coverage: 100%
+```
+
+### Git status
+
+Run and display:
+```bash
+git status
+git diff --stat HEAD
+```
+
+### Proposed commit message
+
+Find the open GitHub issue linked to this branch. Look for an issue number in the branch name, or check recent open issues with `gh issue list`. Draft a commit message:
+
+```
+<imperative summary of the work> (#<issue-number>)
+```
+
+Keep the summary under 72 characters. Do not include AI attribution.
+
+---
+
+## Step 3 — Wait for developer confirmation
+
+After presenting the review summary, stop and ask:
+
+> Ready to commit? Review the test results, changed files, and proposed commit message above.
+> Reply with:
+> - **"yes"** or **"ship it"** to proceed
+> - A revised commit message to use instead
+> - **"no"** or **"wait"** to abort
+
+Do not proceed until the developer explicitly confirms.
+
+---
+
+## Step 4 — Commit, push, and open PR (only after confirmation)
+
+Once confirmed:
+
+1. **Stage and commit** (be specific — do not use `git add .`):
    ```bash
-   git add <staged files>
-   git commit -m "<summary> (#<issue-number>)"
+   git add <relevant files>
+   git commit -m "<confirmed commit message>"
    ```
 
-4. **Push**:
+2. **Push**:
    ```bash
    git push origin <current-branch>
    ```
 
-5. **Open PR** targeting `develop`:
+3. **Open PR** targeting `develop`:
    ```bash
    gh pr create --base develop --title "<issue title>" --body "<summary of changes, references #issue-number>"
    ```
