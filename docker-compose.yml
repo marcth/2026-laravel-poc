@@ -46,7 +46,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
     networks:
       - laravel
     healthcheck:
@@ -58,14 +58,15 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-laravel-dev}
     volumes:
       - redis_data:/data
     ports:
-      - "6380:6379"
+      - "127.0.0.1:6380:6379"
     networks:
       - laravel
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-laravel-dev} --no-auth-warning ping"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -73,8 +74,8 @@ services:
   mailpit:
     image: axllent/mailpit
     ports:
-      - "8026:8025"
-      - "1026:1025"
+      - "127.0.0.1:8026:8025"
+      - "127.0.0.1:1026:1025"
     networks:
       - laravel
 

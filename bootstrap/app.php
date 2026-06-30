@@ -19,10 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/health/*',
         ]);
 
-        $middleware->api(prepend: [
-            ForceJsonResponse::class,
-            ApiVersion::class,
-        ]);
+        $middleware->api(
+            prepend: [
+                ForceJsonResponse::class,
+                ApiVersion::class,
+            ],
+            append: ['throttle:60,1'],
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
