@@ -1,7 +1,7 @@
 Run the full validation gate in sequence. Stop immediately and report the failure if any gate exits non-zero.
 
 ```bash
-docker compose exec app php artisan test --coverage
+docker compose exec app php artisan test --coverage --min=100
 docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=-1
 docker compose exec app ./vendor/bin/pint --test
 docker compose exec app php artisan l5-swagger:generate

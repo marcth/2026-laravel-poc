@@ -66,6 +66,7 @@ Do not proceed until the developer explicitly confirms.
 Once confirmed:
 
 1. **Stage and commit** (be specific — do not use `git add .`):
+   - Never stage: `.env`, `storage/`, `bootstrap/cache/`, `.omc/` state files
    ```bash
    git add <relevant files>
    git commit -m "<confirmed commit message>"

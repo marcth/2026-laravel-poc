@@ -24,12 +24,20 @@ class CheckServiceHealth
 
     public function __construct(private readonly HealthCheckerService $checker) {}
 
-    /** @return HealthStatusData|HealthStatusData[] */
-    public function handle(?string $service = null): HealthStatusData|array
+    public function handle(?string $service = null): HealthAggregateData|HealthStatusData
     {
-        return $service === null
-            ? $this->checker->checkAll()
-            : $this->checker->checkOne($service);
+        if ($service === null) {
+            $statuses = $this->checker->checkAll();
+            $healthy = collect($statuses)->every(fn (HealthStatusData $s) => $s->status === ServiceStatus::Ok);
+
+            return new HealthAggregateData(
+                services: $statuses,
+                healthy: $healthy,
+                checkedAt: now()->toIso8601String(),
+            );
+        }
+
+        return $this->checker->checkOne($service);
     }
 
     #[OA\Get(
@@ -68,23 +76,14 @@ class CheckServiceHealth
             return response()->json(['message' => 'Unknown service'], 404);
         }
 
-        if ($service === null) {
-            /** @var HealthStatusData[] $result */
-            $healthy = collect($result)->every(fn (HealthStatusData $s) => $s->status === ServiceStatus::Ok);
-            $aggregate = new HealthAggregateData(
-                services: $result,
-                healthy: $healthy,
-                checkedAt: now()->toIso8601String(),
-            );
-
-            return response()->json($aggregate, $healthy ? 200 : 503);
+        if ($result instanceof HealthAggregateData) {
+            return response()->json($result, $result->healthy ? 200 : 503);
         }
 
-        /** @var HealthStatusData $result */
         return response()->json($result, $result->code);
     }
 
-    public function asCommand(Command $command): void
+    public function asCommand(Command $command): int
     {
         $service = $command->argument('service');
         $service = is_string($service) ? $service : null;
@@ -94,23 +93,21 @@ class CheckServiceHealth
         } catch (\InvalidArgumentException) {
             $command->error('Unknown service: '.($service ?? ''));
 
-            return;
+            return Command::FAILURE;
         }
 
-        if ($service === null) {
-            /** @var HealthStatusData[] $result */
+        if ($result instanceof HealthAggregateData) {
             $command->table(
                 ['Service', 'Status', 'Code', 'Time (ms)'],
                 array_map(
                     fn (HealthStatusData $d) => [$d->service, $d->status->value, $d->code, $d->executionTimeMs],
-                    $result
+                    $result->services
                 )
             );
 
-            return;
+            return Command::SUCCESS;
         }
 
-        /** @var HealthStatusData $result */
         $command->table(
             ['Service', 'Status', 'Code', 'Time (ms)'],
             [[$result->service, $result->status->value, $result->code, $result->executionTimeMs]]
@@ -119,6 +116,8 @@ class CheckServiceHealth
         if (! empty($result->meta)) {
             $command->table(['Key', 'Value'], $this->flattenMeta($result->meta));
         }
+
+        return Command::SUCCESS;
     }
 
     /**

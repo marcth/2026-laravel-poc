@@ -45,7 +45,7 @@ docs/
 └── architecture/       # ADRs, diagrams, design decisions (Phase 2+)
 ```
 
-**Always append to `docs/agentic/BUILD.md`** after making significant changes. Never edit past entries — add new dated sections instead.
+**Always update `docs/agentic/BUILD.md`** after making significant changes.
 
 ---
 
@@ -92,7 +92,7 @@ docker compose logs -f nginx
 ## Directory Structure
 
 ```
-/work/laravel-prototype/
+./
 ├── app/                  # Application code (Models, Controllers, Services)
 ├── bootstrap/            # Framework bootstrap files
 ├── config/               # Configuration files
