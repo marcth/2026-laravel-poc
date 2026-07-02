@@ -108,6 +108,7 @@ jobs:
             -v ${{ github.workspace }}:/var/www/html \
             -e APP_KEY=${{ steps.appkey.outputs.value }} \
             -e APP_ENV=testing \
+            -e L5_SWAGGER_GENERATE_YAML_COPY=true \
             laravel-prototype-ci:latest \
             php artisan l5-swagger:generate
 
