@@ -32,6 +32,8 @@ RUN pecl install redis \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/php.ini
+
 WORKDIR /var/www/html
 
 #################################################################
@@ -53,6 +55,7 @@ RUN apk add --no-cache su-exec linux-headers $PHPIZE_DEPS \
 RUN addgroup -g ${GID} -S app \
     && adduser -u ${UID} -S -G app app
 
+COPY docker/php/phpstan.ini /usr/local/etc/php/conf.d/phpstan.ini
 COPY docker/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 # Override FPM pool user — must come after www.conf alphabetically (zzz- prefix)
 COPY docker/php/fpm-dev.conf /usr/local/etc/php-fpm.d/zzz-dev.conf
@@ -66,6 +69,8 @@ ENTRYPOINT ["docker/php/dev-entrypoint.sh"]
 FROM base AS ci
 
 ENV APP_ENV=testing
+
+COPY docker/php/ci.ini /usr/local/etc/php/conf.d/zzz-ci.ini
 
 RUN apk add --no-cache $PHPIZE_DEPS \
     && pecl install pcov \

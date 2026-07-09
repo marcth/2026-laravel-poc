@@ -44,28 +44,122 @@ class CheckServiceHealth
         path: '/api/health',
         operationId: 'getHealthAggregate',
         summary: 'All services health check',
+        description: 'Returns the health status of all registered services (app, mariadb, redis) as an aggregate. Responds 200 when every service is ok; responds 503 when one or more services are degraded or down. Use this endpoint in post-deploy readiness probes.',
         security: [['sanctum' => []]],
         tags: ['HealthCheck'],
         responses: [
-            new OA\Response(response: 200, description: 'All services healthy', content: new OA\JsonContent(ref: '#/components/schemas/HealthAggregateResource')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
-            new OA\Response(response: 503, description: 'One or more services degraded or down', content: new OA\JsonContent(ref: '#/components/schemas/HealthAggregateResource')),
+            new OA\Response(
+                response: 200,
+                description: 'Every registered service is reachable and operational.',
+                content: new OA\JsonContent(
+                    ref: '#/components/schemas/HealthAggregateResource',
+                    examples: [
+                        new OA\Examples(
+                            example: 'healthy',
+                            summary: 'All services healthy',
+                            value: [
+                                'services' => [
+                                    ['service' => 'app', 'status' => 'ok', 'code' => 200, 'execution_time_ms' => 2, 'meta' => ['opcache_enabled' => true, 'debug_mode' => false, 'maintenance_mode' => false, 'memory_limit' => '128M']],
+                                    ['service' => 'mariadb', 'status' => 'ok', 'code' => 200, 'execution_time_ms' => 1, 'meta' => []],
+                                    ['service' => 'redis', 'status' => 'ok', 'code' => 200, 'execution_time_ms' => 1, 'meta' => []],
+                                ],
+                                'healthy' => true,
+                                'checked_at' => '2026-06-26T12:00:00+00:00',
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'No valid Bearer token was provided.',
+                content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
+            ),
+            new OA\Response(
+                response: 503,
+                description: 'One or more services are degraded or unreachable.',
+                content: new OA\JsonContent(
+                    ref: '#/components/schemas/HealthAggregateResource',
+                    examples: [
+                        new OA\Examples(
+                            example: 'degraded',
+                            summary: 'MariaDB unreachable',
+                            value: [
+                                'services' => [
+                                    ['service' => 'app', 'status' => 'ok', 'code' => 200, 'execution_time_ms' => 2, 'meta' => ['opcache_enabled' => true, 'debug_mode' => false, 'maintenance_mode' => false, 'memory_limit' => '128M']],
+                                    ['service' => 'mariadb', 'status' => 'down', 'code' => 503, 'execution_time_ms' => 2001, 'meta' => []],
+                                    ['service' => 'redis', 'status' => 'ok', 'code' => 200, 'execution_time_ms' => 1, 'meta' => []],
+                                ],
+                                'healthy' => false,
+                                'checked_at' => '2026-06-26T12:00:00+00:00',
+                            ]
+                        ),
+                    ]
+                )
+            ),
         ],
     )]
     #[OA\Get(
         path: '/api/health/{service}',
         operationId: 'getServiceHealth',
         summary: 'Single service health check',
+        description: 'Returns the health status of a single named service. Use for targeted diagnostics when a specific service appears unhealthy. The meta field carries service-specific detail (e.g. opcache state for app, connection latency for mariadb).',
         security: [['sanctum' => []]],
         tags: ['HealthCheck'],
         parameters: [
-            new OA\Parameter(name: 'service', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['app', 'mariadb', 'redis'])),
+            new OA\Parameter(
+                name: 'service',
+                in: 'path',
+                required: true,
+                description: 'Name of the service to check. Valid values: app (Laravel application runtime), mariadb (primary database), redis (cache and session store). Returns 404 for any other value.',
+                schema: new OA\Schema(type: 'string', enum: ['app', 'mariadb', 'redis'])
+            ),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Service is healthy', content: new OA\JsonContent(ref: '#/components/schemas/HealthStatusResource')),
-            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
-            new OA\Response(response: 404, description: 'Unknown service', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
-            new OA\Response(response: 503, description: 'Service is degraded or down', content: new OA\JsonContent(ref: '#/components/schemas/HealthStatusResource')),
+            new OA\Response(
+                response: 200,
+                description: 'The requested service is reachable and operational.',
+                content: new OA\JsonContent(
+                    ref: '#/components/schemas/HealthStatusResource',
+                    examples: [
+                        new OA\Examples(
+                            example: 'redis-healthy',
+                            summary: 'Redis healthy',
+                            value: [
+                                'service' => 'redis',
+                                'status' => 'ok',
+                                'code' => 200,
+                                'execution_time_ms' => 3,
+                                'meta' => [],
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'No valid Bearer token was provided.',
+                content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'The service name is not recognised by the health check registry.',
+                content: new OA\JsonContent(
+                    ref: '#/components/schemas/ErrorResponse',
+                    examples: [
+                        new OA\Examples(
+                            example: 'unknown-service',
+                            summary: 'Unknown service',
+                            value: ['message' => 'Unknown service']
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 503,
+                description: 'The requested service is degraded or unreachable.',
+                content: new OA\JsonContent(ref: '#/components/schemas/HealthStatusResource')
+            ),
         ],
     )]
     public function asController(Request $request, ?string $service = null): JsonResponse

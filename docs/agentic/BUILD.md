@@ -424,3 +424,59 @@ Six project-scoped commands added to `.claude/commands/`:
 ### Validation
 
 All gates pass locally: PHPStan level max (0 errors), Pint (clean), 50 tests at 100% coverage. CI unblocked — no spec generation in the test step, no Spectator dependency.
+
+---
+
+## Phase 8 — OpenAPI Human Documentation & VERSION File
+
+**Completed:** 2026-07-09 | **Goal:** Make the OpenAPI spec human-readable — narrative descriptions, inline examples, and a VERSION file as the single source of truth for API versioning. Schema ownership moved from `app/OpenApi/Schemas/` stubs to the DTO classes that own the data.
+
+### A — VERSION File
+
+- **`VERSION`** (new) — committed env file (not a secret) loaded by `config/app.php` via `Dotenv::createImmutable(..., 'VERSION')->safeLoad()`. Defines `APP_VERSION=1.0.0` and `API_VERSION=${APP_VERSION}`. This is the single source of truth; version numbers must not be added to `.env`.
+- **`config/app.php`** — loads `VERSION` at the top of the config file so `APP_VERSION` and `API_VERSION` are available throughout the configuration layer before `env()` calls resolve.
+- **Versioning policy (semver):** Major = breaking change / `X-API-Version` header bump (v1 → v2), Minor = new backwards-compatible endpoints or fields, Patch = bug fixes.
+
+### B — Schema Ownership Moved to DTOs
+
+- **`app/OpenApi/Schemas/HealthCheck/HealthAggregateResourceSchema.php`** (deleted)
+- **`app/OpenApi/Schemas/HealthCheck/HealthStatusResourceSchema.php`** (deleted)
+- Schema `OA\Schema` and `OA\Property` annotations moved onto the DTO classes that own the data:
+  - `app/HealthCheck/Data/HealthAggregateData.php` — now carries `OA\Schema` with all properties inline
+  - `app/HealthCheck/Data/HealthStatusData.php` — same pattern
+- Convention formalised in CLAUDE.md: Operation docs (`OA\Get`, `OA\Post`) belong on Action classes; Schema docs (`OA\Schema`, `OA\Property`) belong on DTO classes. No new `app/OpenApi/Schemas/` files for domain schemas.
+
+### C — OpenAPI Human Documentation
+
+- **`app/HealthCheck/Actions/CheckServiceHealth.php`** — full narrative descriptions added to `OA\Get` operations (aggregate and single-service), inline `OA\Examples` for success/degraded/unhealthy/not-found responses, `summary` fields on all responses.
+- **`app/Http/Controllers/ApiController.php`** — `OA\Info` block enriched with `description`, `contact`, and `license` fields.
+
+### D — CI: Generate + Audit Steps
+
+- **`.github/workflows/ci.yml`** — two steps added after the test run:
+  1. `l5-swagger:generate` — regenerates `storage/api-docs/openapi.yaml` inside the CI container (requires `L5_SWAGGER_GENERATE_YAML_COPY=true` env var so the YAML copy is written alongside the JSON).
+  2. `l5-swagger:audit --fail-on-warnings` — runs the Phase 7 audit command against the freshly generated spec; CI fails on any gap or warning.
+
+### E — Documentation & Curl Examples
+
+- **`app/HealthCheck/README.md`** — all four curl examples updated to include `-H "X-API-Version: 1"`. Versioning is header-based; the `/v1/` URL prefix was dropped in the Pre-Phase-6 refactor.
+- **`VERSION` semver comment** — corrected "URL prefix bumps" → "X-API-Version header bumps" to match the actual versioning mechanism.
+
+### F — Docker: PHP ini Files & FPM Startup Fix
+
+Per-environment PHP memory limits via `conf.d` ini files (alphabetical load order ensures each stage's override wins):
+
+| File | Stage | Loaded as | memory_limit |
+|------|-------|-----------|-------------|
+| `docker/php/php.ini` | base | `php.ini` | 256M |
+| `docker/php/phpstan.ini` | dev | `phpstan.ini` | 512M |
+| `docker/php/ci.ini` | ci | `zzz-ci.ini` | -1 (unlimited) |
+
+Pre-existing container startup crash fixed (had been masked since Phase 2 — container never restarted):
+- `docker-compose.yml` had `user: "${UID:-1000}:${GID:-1000}"` on the app service, causing the entrypoint to run as non-root. `su-exec` then called `setgroups()` without `CAP_SETGID` → "Operation not permitted".
+- `user:` directive removed. Entrypoint now runs as root (required for `chown`); FPM master also runs as root — the standard Docker PHP-FPM pattern. Workers still run as `app` via `zzz-dev.conf` pool config.
+- `su-exec app` removed from `docker/php/dev-entrypoint.sh`.
+
+### Validation
+
+All gates pass: 50 tests at 100% coverage, PHPStan level max (0 errors), Pint (clean), `l5-swagger:generate` (clean), `l5-swagger:audit` (0 gaps, 0 warnings). CI pipeline updated with generate + audit steps.

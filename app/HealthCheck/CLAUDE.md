@@ -31,7 +31,7 @@ Service readiness checks for DevOps/CI/CD pipelines, monitoring systems, and loc
    - `check(): HealthStatusData` — uses `hrtime(true)` for timing, catches exceptions → `ServiceStatus::Down`
 2. Register the class in `config/health-check.php` under the `checks` array
 3. Add service-specific fields to `meta` array inside `check()` as needed
-4. Update `app/OpenApi/Schemas/HealthCheck/` schemas if meta shape changes; OA path format is `/api/health` and `/api/health/{service}` (no version prefix in URL — version is header-negotiated)
+4. Update the DTO's `OA\Property` attributes if the data shape or meta fields change; OA path format is `/api/health` and `/api/health/{service}` (no version prefix in URL — version is header-negotiated)
 5. Write unit tests in `tests/Unit/HealthCheck/YourServiceHealthCheckTest.php` — mock the relevant facade
 
 ## Architecture Notes
