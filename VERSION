@@ -4,7 +4,7 @@
 # Loaded in config/app.php — overrides nothing, only sets what .env does not define.
 #
 # Versioning policy (semver):
-#   Major (1.x.x → 2.0.0)  breaking API contract change; URL prefix bumps (v1 → v2)
+#   Major (1.x.x → 2.0.0)  breaking API contract change; X-API-Version header bumps (v1 → v2)
 #   Minor (1.0.x → 1.1.0)  new endpoints or response fields, backwards-compatible
 #   Patch (1.0.0 → 1.0.1)  bug fixes, no contract change
 

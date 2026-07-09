@@ -116,6 +116,7 @@ docker compose exec app php artisan health:check redis
 curl -s \
   -H "Authorization: Bearer $HEALTH_TOKEN" \
   -H "Accept: application/json" \
+  -H "X-API-Version: 1" \
   http://localhost:8000/api/health | jq
 ```
 
@@ -125,16 +126,19 @@ curl -s \
 curl -s \
   -H "Authorization: Bearer $HEALTH_TOKEN" \
   -H "Accept: application/json" \
+  -H "X-API-Version: 1" \
   http://localhost:8000/api/health/app | jq
 
 curl -s \
   -H "Authorization: Bearer $HEALTH_TOKEN" \
   -H "Accept: application/json" \
+  -H "X-API-Version: 1" \
   http://localhost:8000/api/health/mariadb | jq
 
 curl -s \
   -H "Authorization: Bearer $HEALTH_TOKEN" \
   -H "Accept: application/json" \
+  -H "X-API-Version: 1" \
   http://localhost:8000/api/health/redis | jq
 ```
 
