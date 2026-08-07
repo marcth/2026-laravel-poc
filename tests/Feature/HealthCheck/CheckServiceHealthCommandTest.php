@@ -72,4 +72,39 @@ class CheckServiceHealthCommandTest extends TestCase
             ->expectsOutputToContain('Unknown service')
             ->assertExitCode(1);
     }
+
+    public function test_health_check_command_returns_failure_when_aggregate_is_unhealthy(): void
+    {
+        $this->mock(HealthCheckerService::class, function ($mock): void {
+            $mock->shouldReceive('checkAll')->once()->andReturn([
+                new HealthStatusData('laravel', ServiceStatus::Ok, 200, 1, []),
+                new HealthStatusData('mariadb', ServiceStatus::Down, 503, 2, []),
+                new HealthStatusData('redis', ServiceStatus::Ok, 200, 3, []),
+            ]);
+        });
+
+        $this->artisan('health:check')->assertExitCode(1);
+    }
+
+    public function test_health_check_command_returns_failure_when_single_service_is_down(): void
+    {
+        $this->mock(HealthCheckerService::class, function ($mock): void {
+            $mock->shouldReceive('checkOne')->with('mariadb')->once()->andReturn(
+                new HealthStatusData('mariadb', ServiceStatus::Down, 503, 2, [])
+            );
+        });
+
+        $this->artisan('health:check mariadb')->assertExitCode(1);
+    }
+
+    public function test_health_check_command_returns_failure_when_single_service_is_degraded(): void
+    {
+        $this->mock(HealthCheckerService::class, function ($mock): void {
+            $mock->shouldReceive('checkOne')->with('app')->once()->andReturn(
+                new HealthStatusData('app', ServiceStatus::Degraded, 200, 1, [])
+            );
+        });
+
+        $this->artisan('health:check app')->assertExitCode(1);
+    }
 }

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\OpenApi\Schemas\Common;
+namespace App\Shared\Data;
 
 use OpenApi\Attributes as OA;
+use Spatie\LaravelData\Data;
 
 #[OA\Schema(
     schema: 'ErrorResponse',
@@ -15,4 +16,7 @@ use OpenApi\Attributes as OA;
     ],
     type: 'object',
 )]
-class ErrorResponseSchema {}
+class ApiErrorData extends Data
+{
+    public function __construct(public readonly string $message) {}
+}
