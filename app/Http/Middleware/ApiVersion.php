@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,7 +18,17 @@ class ApiVersion
     {
         $version = $this->resolveVersion($request);
 
-        app()->instance('api.version', $version);
+        /** @var list<string> $supported */
+        $supported = config('api.supported_versions', ['1']);
+
+        if (! in_array($version, $supported, strict: true)) {
+            return new JsonResponse(
+                ['message' => "Unsupported API version '{$version}'. Supported: ".implode(', ', $supported)],
+                Response::HTTP_NOT_ACCEPTABLE
+            );
+        }
+
+        $request->attributes->set('api.version', $version);
 
         return $next($request);
     }

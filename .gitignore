@@ -9,7 +9,7 @@
 /.idea
 /.nova
 /.phpunit.cache
-/.vscode
+
 /.zed
 /auth.json
 /node_modules
@@ -26,7 +26,8 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# Agentic orchestration — plans/specs/skills tracked; ephemeral state ignored via .omc/.gitignore
+# Agentic orchestration — lives outside the repo at ../.omc/
+/.omc/
 
 # Personal scratchpad
 /docs/todol.txt

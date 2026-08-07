@@ -21,8 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(
             prepend: [
-                ForceJsonResponse::class,
                 ApiVersion::class,
+                ForceJsonResponse::class,
             ],
             append: ['throttle:60,1'],
         );

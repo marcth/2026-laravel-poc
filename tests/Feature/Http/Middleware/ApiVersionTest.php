@@ -26,7 +26,7 @@ class ApiVersionTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson('/api/health/app', ['X-API-Version' => '2']);
+            ->getJson('/api/health/app', ['X-API-Version' => '1']);
 
         $response->assertStatus(200);
     }
@@ -42,8 +42,33 @@ class ApiVersionTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->get('/api/health/app', ['Accept' => 'application/vnd.api.v2+json']);
+            ->get('/api/health/app', ['Accept' => 'application/vnd.api.v1+json']);
 
         $response->assertStatus(200);
+    }
+
+    public function test_unsupported_version_returns_406(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/health/app', ['X-API-Version' => '99'])
+            ->assertStatus(406)
+            ->assertJsonFragment(['message' => "Unsupported API version '99'. Supported: 1"]);
+    }
+
+    public function test_defaults_to_version_1_when_no_header(): void
+    {
+        $this->mock(HealthCheckerService::class, function ($mock): void {
+            $mock->shouldReceive('checkOne')->with('app')->andReturn(
+                new HealthStatusData('app', ServiceStatus::Ok, 200, 1, [])
+            );
+        });
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/health/app')
+            ->assertStatus(200);
     }
 }

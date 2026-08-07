@@ -214,7 +214,7 @@ app/{Domain}/
 ### Conventions Established
 - **Domain CLAUDE.md**: every domain directory gets a `CLAUDE.md` — see `app/HealthCheck/CLAUDE.md` as the template
 - **API versioning**: all API routes under `/v1/` prefix in `routes/api.php`
-- **OpenAPI schemas**: `app/OpenApi/Schemas/{Domain}/` for reusable schema classes
+- **OpenAPI schemas**: `app/OpenApi/Schemas/{Domain}/` for reusable schema classes — ⚠️ superseded by Phase 8: schema ownership moved to DTO classes; see Phase 8.
 
 ---
 

@@ -38,6 +38,10 @@ Service readiness checks for DevOps/CI/CD pipelines, monitoring systems, and loc
 - Uses `lorisleiva/laravel-actions` (`AsAction` trait) — one class handles HTTP (`asController`), CLI (`asCommand`), and future job/listener contexts
 - `handle()` is format-agnostic — returns `HealthStatusData` or `HealthStatusData[]`
 - Two `#[OA\Get]` attributes on `asController()` — one for `/api/health`, one for `/api/health/{service}`
-- Checks run sequentially, 2s timeout budget per service
-- `HealthStatusData::$meta` is typed as `array` — typed sub-DTOs planned for Phase 5
 - `app` is a registered checker (`ApplicationHealthCheck`) like any other service — checks maintenance mode, debug flag, opcache, and memory limit; returns `Ok` or `Degraded` only (never `Down`)
+
+## IoC Bindings
+
+The domain registers its own bindings via `App\HealthCheck\Providers\HealthCheckServiceProvider`, not `AppServiceProvider`. The provider tags all classes listed in `config('health-check.checks')` as `health-checks` and binds `HealthCheckerService` to resolve them.
+
+To add a new checker: implement `HealthCheckInterface`, add the class to `config/health-check.php` under `checks`, and the provider wires it automatically — no changes to the provider or `AppServiceProvider` needed.

@@ -8,6 +8,7 @@ use App\HealthCheck\Data\HealthAggregateData;
 use App\HealthCheck\Data\HealthStatusData;
 use App\HealthCheck\Enums\ServiceStatus;
 use App\HealthCheck\Services\HealthCheckerService;
+use App\Shared\Data\ApiErrorData;
 use Illuminate\Console\Command;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -167,7 +168,7 @@ class CheckServiceHealth
         try {
             $result = $this->handle($service);
         } catch (\InvalidArgumentException) {
-            return response()->json(['message' => 'Unknown service'], 404);
+            return response()->json(new ApiErrorData('Unknown service'), 404);
         }
 
         if ($result instanceof HealthAggregateData) {
@@ -199,7 +200,7 @@ class CheckServiceHealth
                 )
             );
 
-            return Command::SUCCESS;
+            return $result->healthy ? Command::SUCCESS : Command::FAILURE;
         }
 
         $command->table(
@@ -211,7 +212,7 @@ class CheckServiceHealth
             $command->table(['Key', 'Value'], $this->flattenMeta($result->meta));
         }
 
-        return Command::SUCCESS;
+        return $result->status === ServiceStatus::Ok ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**

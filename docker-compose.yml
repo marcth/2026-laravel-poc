@@ -7,6 +7,8 @@ services:
       args:
         UID: "${UID:-1000}"
         GID: "${GID:-1000}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - .:/var/www/html
     networks:
