@@ -1,7 +1,5 @@
 # Architecture
 
-> Work in progress — detailed documentation will be added in Phase 5.
-
 ## Domain Structure
 
 This project uses a siloed domain architecture. Each domain lives under `app/{Domain}/` and is self-contained:
@@ -34,11 +32,9 @@ Version is negotiated via request headers — never in the URL path:
 - `Accept: application/vnd.laravel-prototype.v{major}+json` — standard content negotiation
 - `X-API-Version: {major}` — convenience header for clients that cannot set `Accept`
 
-`config/api.php` is the **single source of truth** for the semver version string and vendor identifier. Both the `ApiVersion` middleware and the L5-Swagger `{L5_SWAGGER_CONST_VERSION}` constant read from this config.
+The `VERSION` file (project root) is the **single source of truth** for the semver version string. `config/api.php` reads from it and exposes it to the application; the L5-Swagger `{L5_SWAGGER_CONST_VERSION}` constant reads from this config.
 
-The `ApiVersion` middleware resolves the negotiated version on every API request and binds it as `api.version` in the service container. It defaults to the major version from `config('api.version')` when no header is present.
-
-i18n follows the same pattern: `Accept-Language` is negotiated in the same middleware pass, keeping version and locale negotiation consistent.
+The `ApiVersion` middleware resolves the negotiated version on every API request and stores it as a request attribute (`api.version`). It defaults to the major version from `config('api.version')` when no header is present.
 
 See [https://laravelactions.com](https://laravelactions.com) for how Actions serve as both HTTP controllers and CLI commands.
 
@@ -79,6 +75,18 @@ This project uses [`lorisleiva/laravel-actions`](https://laravelactions.com) ins
 **Why Actions instead of controllers:** one class = one use case = one entry point. No controller bloat, no service-layer duplication, no separate command class needed alongside a controller.
 
 **DDD route files:** each domain owns its route file (`routes/api/{domain}.php`). The current single-domain structure (`routes/api/health.php`) is intentionally flat. When a second domain is added, the pattern is already established — create `routes/api/{new-domain}.php` and `require` it from `routes/api.php`. Per-domain subdirectories (`routes/api/health/`) are deferred until a single domain has enough routes to warrant splitting.
+
+---
+
+## Domain ServiceProviders
+
+Each domain registers its own IoC bindings via a dedicated `ServiceProvider` in `app/{Domain}/Providers/`. This keeps `AppServiceProvider` free of domain-specific concerns.
+
+| Domain | Provider |
+|--------|---------|
+| HealthCheck | `App\HealthCheck\Providers\HealthCheckServiceProvider` |
+
+**When adding a new domain:** create `app/{Domain}/Providers/{Domain}ServiceProvider.php` extending `Illuminate\Support\ServiceProvider`, register it in `bootstrap/providers.php`, and document bindings in the domain's `CLAUDE.md`.
 
 ---
 
